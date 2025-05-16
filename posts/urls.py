@@ -12,6 +12,9 @@ posts_router = routers.NestedSimpleRouter(router, r'', lookup='post')
 posts_router.register(r'comments', CommentViewSet, basename='post-comments')
 
 urlpatterns = [
+    path('following/', PostViewSet.as_view({'get': 'following'}), name='following-posts'),
+    path('my_posts/', PostViewSet.as_view({'get': 'my_posts'}), name='my-posts'),
+    path('liked/', PostViewSet.as_view({'get': 'liked'}), name='liked-posts'),
     path('', include(router.urls)),
     path('', include(posts_router.urls)),
 ] 

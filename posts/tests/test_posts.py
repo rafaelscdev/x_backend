@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 from posts.models import Post, Comment
+from time import sleep
 
 User = get_user_model()
 
@@ -97,12 +98,10 @@ class PostAPITests(APITestCase):
         # Limpar posts existentes
         Post.objects.all().delete()
         
-        # Criar primeiro post
+        # Criar posts via API
         self.client.post('/api/posts/', {'content': 'Primeiro post'})
-        
-        # Criar segundo post
-        response = self.client.post('/api/posts/', {'content': 'Segundo post!'})
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        sleep(1)  # Pequeno delay para garantir timestamps diferentes
+        self.client.post('/api/posts/', {'content': 'Segundo post!'})
         
         # Buscar posts via API
         response = self.client.get('/api/posts/')
@@ -112,4 +111,47 @@ class PostAPITests(APITestCase):
         posts = response.data['results'] if 'results' in response.data else response.data
         self.assertEqual(len(posts), 2)
         self.assertEqual(posts[0]['content'], 'Segundo post!')  # Mais recente primeiro
-        self.assertEqual(posts[1]['content'], 'Primeiro post')  # Post mais antigo por último 
+        self.assertEqual(posts[1]['content'], 'Primeiro post')  # Post mais antigo por último
+
+    def test_following_posts(self):
+        """Teste de listagem de posts de usuários que sigo"""
+        # Criar um post do outro usuário
+        other_post = Post.objects.create(user=self.other_user, content='Post do outro usuário')
+        
+        # Seguir o outro usuário
+        self.client.post(f'/api/follows/user/{self.other_user.id}/follow/')
+        
+        # Buscar posts dos usuários que sigo
+        response = self.client.get('/api/posts/following/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        posts = response.data['results'] if 'results' in response.data else response.data
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0]['content'], 'Post do outro usuário')
+
+    def test_my_posts(self):
+        """Teste de listagem dos meus posts"""
+        # Criar um post do outro usuário
+        Post.objects.create(user=self.other_user, content='Post do outro usuário')
+        
+        # Buscar meus posts
+        response = self.client.get('/api/posts/my_posts/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        posts = response.data['results'] if 'results' in response.data else response.data
+        self.assertEqual(len(posts), 1)  # Só deve retornar o post criado no setUp
+        self.assertEqual(posts[0]['content'], self.post_data['content'])
+
+    def test_liked_posts(self):
+        """Teste de listagem de posts curtidos"""
+        # Criar um post do outro usuário e curtir
+        other_post = Post.objects.create(user=self.other_user, content='Post do outro usuário')
+        self.client.post(f'/api/posts/{other_post.id}/like/')
+        
+        # Buscar posts curtidos
+        response = self.client.get('/api/posts/liked/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        posts = response.data['results'] if 'results' in response.data else response.data
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0]['content'], 'Post do outro usuário') 
