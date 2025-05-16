@@ -73,4 +73,38 @@ class PostViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save(user=request.user, post=post)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def following(self, request):
+        """Lista posts dos usuários que o usuário logado segue"""
+        following_users = request.user.following.values_list('followed', flat=True)
+        queryset = self.get_queryset().filter(user__in=following_users)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def my_posts(self, request):
+        """Lista posts do usuário logado"""
+        queryset = self.get_queryset().filter(user=request.user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def liked(self, request):
+        """Lista posts que o usuário logado curtiu"""
+        queryset = self.get_queryset().filter(likes=request.user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data) 
