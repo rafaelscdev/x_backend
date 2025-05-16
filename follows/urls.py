@@ -1,16 +1,13 @@
-from django.urls import path
-from .views import (
-    FollowUserView,
-    UnfollowUserView,
-    UserFollowStatsView,
-    UserFollowersListView,
-    UserFollowingListView
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .viewsets import FollowViewSet
+
+router = DefaultRouter()
+router.register(r'', FollowViewSet, basename='follows')
 
 urlpatterns = [
-    path('users/<int:user_id>/follow/', FollowUserView.as_view(), name='follow-user'),
-    path('users/<int:user_id>/unfollow/', UnfollowUserView.as_view(), name='unfollow-user'),
-    path('users/<int:user_id>/stats/', UserFollowStatsView.as_view(), name='user-follow-stats'),
-    path('users/<int:user_id>/followers/', UserFollowersListView.as_view(), name='user-followers'),
-    path('users/<int:user_id>/following/', UserFollowingListView.as_view(), name='user-following'),
+    path('', include(router.urls)),
+    path('user/<int:pk>/follow/', FollowViewSet.as_view({'post': 'follow_user', 'delete': 'unfollow_user'}), name='follow-user'),
+    path('user/<int:pk>/followers/', FollowViewSet.as_view({'get': 'followers'}), name='user-followers'),
+    path('user/<int:pk>/following/', FollowViewSet.as_view({'get': 'following'}), name='user-following'),
 ] 
