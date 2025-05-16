@@ -5,27 +5,27 @@ from django.core.exceptions import ValidationError
 class Follow(models.Model):
     follower = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='following'
+        related_name='following',
+        on_delete=models.CASCADE
     )
-    following = models.ForeignKey(
+    followed = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='followers'
+        related_name='followers',
+        on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('follower', 'following')
+        unique_together = ('follower', 'followed')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.follower.username} segue {self.following.username}'
+        return f'{self.follower.username} → {self.followed.username}'
 
     def clean(self):
-        if self.follower == self.following:
+        if self.follower == self.followed:
             raise ValidationError('Um usuário não pode seguir a si mesmo.')
 
     def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+        self.full_clean()
+        super().save(*args, **kwargs) 

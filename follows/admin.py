@@ -3,7 +3,7 @@ from .models import Follow
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('follower', 'following', 'created_at')
-    list_filter = ('created_at', 'follower', 'following')
-    search_fields = ('follower__username', 'following__username')
+    list_display = ('follower', 'followed', 'created_at')
+    list_filter = ('created_at', 'follower', 'followed')
+    search_fields = ('follower__username', 'followed__username')
     readonly_fields = ('created_at',)
