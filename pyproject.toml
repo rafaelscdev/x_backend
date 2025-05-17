@@ -22,7 +22,7 @@ drf-nested-routers = "^0.93.5"
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0.0"
 black = "^24.2.0"
-safety = "^2.3.5"
+safety = "2.2.0"
 isort = "^5.13.2"
 
 [build-system]
