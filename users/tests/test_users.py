@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
+from posts.models import Post
 
 User = get_user_model()
 
@@ -89,4 +90,47 @@ class UserAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
         self.assertEqual(user.bio, update_data['bio'])
-        self.assertEqual(user.email, update_data['email']) 
+        self.assertEqual(user.email, update_data['email'])
+
+    def test_user_stats(self):
+        """Teste de estatísticas do usuário"""
+        # Criar usuário principal e autenticar
+        main_user = User.objects.create_user(
+            username='mainuser',
+            email='main@example.com',
+            password='testpass123'
+        )
+        self.client.force_authenticate(user=main_user)
+        
+        # Criar outro usuário para interações
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123'
+        )
+        
+        # Criar alguns posts
+        post1 = Post.objects.create(user=main_user, content='Post 1')
+        post2 = Post.objects.create(user=main_user, content='Post 2')
+        
+        # Adicionar likes
+        post1.likes.add(other_user)
+        post2.likes.add(other_user)
+        
+        # Criar follow
+        self.client.post(f'/api/follows/user/{other_user.id}/follow/')
+        self.client.force_authenticate(user=other_user)
+        self.client.post(f'/api/follows/user/{main_user.id}/follow/')
+        
+        # Voltar para o usuário principal
+        self.client.force_authenticate(user=main_user)
+        
+        # Verificar estatísticas
+        response = self.client.get(f'/api/users/{main_user.id}/stats/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.assertEqual(response.data['followers_count'], 1)
+        self.assertEqual(response.data['following_count'], 1)
+        self.assertEqual(response.data['posts_count'], 2)
+        self.assertEqual(response.data['likes_received'], 2)
+        self.assertEqual(response.data['likes_given'], 0) 
