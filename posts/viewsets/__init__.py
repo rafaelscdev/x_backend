@@ -1,1 +1,3 @@
-from .viewsets import PostViewSet, CommentViewSet 
+from .viewsets import CommentViewSet, PostViewSet
+
+__all__ = ["PostViewSet", "CommentViewSet"]
