@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'x-clone-api-94920bbdaaf8.herokuapp.com']
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "x-clone-api-94920bbdaaf8.herokuapp.com"]
 
 
 # Application definition
@@ -169,17 +169,17 @@ SIMPLE_JWT = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://x-clone-api-94920bbdaaf8.herokuapp.com'
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://x-clone-api-94920bbdaaf8.herokuapp.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://x-clone-api-94920bbdaaf8.herokuapp.com'
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://x-clone-api-94920bbdaaf8.herokuapp.com",
 ]
 
 # Security settings

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'main'
+      - 'heroku-deploy'
 
 jobs:
   heroku-deploy:
