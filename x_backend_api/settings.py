@@ -22,12 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-3i96pmw183(#@fes!fwnf)ex(&3mub-6ij*1v4&!*lwr%3mljv"
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-3i96pmw183(#@fes!fwnf)ex(&3mub-6ij*1v4&!*lwr%3mljv",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "x-clone-api-94920bbdaaf8.herokuapp.com"]
 
 
 # Application definition
@@ -52,13 +55,13 @@ AUTH_USER_MODEL = "users.User"
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "x_backend_api.urls"
@@ -96,6 +99,11 @@ DATABASES = {
     }
 }
 
+# Heroku: Update database configuration from $DATABASE_URL.
+if os.environ.get("DATABASE_URL"):
+    import dj_database_url
+
+    DATABASES["default"] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -134,7 +142,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "/static/"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -152,14 +162,33 @@ REST_FRAMEWORK = {
     ),
 }
 
-SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(days=1)}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
-INTERNAL_IPS = [
-    "127.0.0.1",
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://x-clone-api-94920bbdaaf8.herokuapp.com",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+CORS_ALLOW_CREDENTIALS = True
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://x-clone-api-94920bbdaaf8.herokuapp.com",
+]
 
-CORS_ORIGIN_ALLOW_ALL = True
+# Security settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
