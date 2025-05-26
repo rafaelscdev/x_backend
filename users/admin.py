@@ -1,3 +1,4 @@
-# Este arquivo está vazio por enquanto, pois não estamos usando o admin do Django
+from django.contrib import admin
 
 # Register your models here.
+from .models import Users

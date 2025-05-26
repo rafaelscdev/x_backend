@@ -1,3 +1,1 @@
-from .serializers import CommentSerializer, PostSerializer
-
-__all__ = ["PostSerializer", "CommentSerializer"]
+from .posts_serializer import CommentSerializer, PostSerializer

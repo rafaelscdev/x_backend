@@ -1,3 +1,1 @@
-from .viewsets import FollowViewSet
-
-__all__ = ["FollowViewSet"]
+from .follows_viewset import FollowsViewSet

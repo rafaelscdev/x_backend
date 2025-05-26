@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from follows.models import Follows
+
 from ..models import Comment, Post
 from ..serializers import CommentSerializer, PostSerializer
 
@@ -26,10 +28,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return Comment.objects.select_related("user", "post")
+        post_id = self.kwargs["post_id"]
+        return Comment.objects.filter(post_id=post_id).order_by("-created_at")
 
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, id=self.kwargs["post_pk"])
+        post_id = self.kwargs.get("post_id")
+        post = get_object_or_404(Post, id=post_id)
         serializer.save(user=self.request.user, post=post)
 
     def get_serializer_context(self):
@@ -39,12 +43,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = PostPagination
-
-    def get_queryset(self):
-        return Post.objects.all().order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -55,15 +57,27 @@ class PostViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     @action(
+        detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def following(self, request):
+        following_ids = Follows.objects.filter(follower=request.user).values_list(
+            "following_id", flat=True
+        )
+        posts = Post.objects.filter(user_id__in=following_ids).order_by("-created_at")
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
+
+    @action(
         detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
     )
     def like(self, request, pk=None):
         post = self.get_object()
-        if post.likes.filter(id=request.user.id).exists():
-            post.likes.remove(request.user)
+        user = request.user
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(user)
             return Response({"status": "unliked"})
         else:
-            post.likes.add(request.user)
+            post.likes.add(user)
             return Response({"status": "liked"})
 
     @action(
@@ -89,20 +103,6 @@ class PostViewSet(viewsets.ModelViewSet):
                 serializer.save(user=request.user, post=post)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(
-        detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated]
-    )
-    def following(self, request):
-        """Lista posts dos usuários que o usuário logado segue"""
-        following_users = request.user.following.values_list("followed", flat=True)
-        queryset = self.get_queryset().filter(user__in=following_users)
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
     @action(
         detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated]

@@ -1,20 +1,11 @@
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework import routers
 
-from .viewsets import RegisterViewSet, UserViewSet
+from users import viewsets
 
-router = DefaultRouter()
-router.register(r"", UserViewSet, basename="users")
+router = routers.SimpleRouter()
+router.register(r"", viewsets.UsersViewSet, basename="users")
 
 urlpatterns = [
-    path("register/", RegisterViewSet.as_view(), name="register"),
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path(
-        "me/",
-        UserViewSet.as_view({"get": "me", "put": "me", "patch": "me"}),
-        name="user-me",
-    ),
     path("", include(router.urls)),
 ]

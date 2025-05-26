@@ -1,3 +1,1 @@
-from .serializers import FollowSerializer
-
-__all__ = ["FollowSerializer"]
+from .follows_serializer import FollowsSerializer

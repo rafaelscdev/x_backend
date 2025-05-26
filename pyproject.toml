@@ -21,11 +21,14 @@ drf-nested-routers = "^0.93.5"
 gunicorn = "^21.2.0"
 dj-database-url = "^2.1.0"
 waitress = "^3.0.2"
+pytest = "^8.3.5"
+factory-boy = "^3.3.3"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0.0"
 black = "^24.2.0"
 isort = "^5.13.2"
+pytest-django = "^4.11.1"
 
 [build-system]
 requires = ["poetry-core"]

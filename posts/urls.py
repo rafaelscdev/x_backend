@@ -1,23 +1,27 @@
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from rest_framework_nested import routers
+from rest_framework import routers
 
-from .viewsets import CommentViewSet, PostViewSet
+from posts.viewsets import CommentViewSet, PostViewSet
 
-# Router principal para posts
-router = DefaultRouter()
+router = routers.SimpleRouter()
 router.register(r"", PostViewSet, basename="posts")
 
-# Router aninhado para comentários
-posts_router = routers.NestedSimpleRouter(router, r"", lookup="post")
-posts_router.register(r"comments", CommentViewSet, basename="post-comments")
+posts_with_comments = [
+    path(
+        "<int:post_id>/comments/",
+        CommentViewSet.as_view({"get": "list", "post": "create"}),
+        name="post-comments-list",
+    ),
+    path(
+        "<int:post_id>/comments/<int:pk>/",
+        CommentViewSet.as_view(
+            {"get": "retrieve", "put": "update", "delete": "destroy"}
+        ),
+        name="post-comments-detail",
+    ),
+]
 
 urlpatterns = [
-    path(
-        "following/", PostViewSet.as_view({"get": "following"}), name="following-posts"
-    ),
-    path("my_posts/", PostViewSet.as_view({"get": "my_posts"}), name="my-posts"),
-    path("liked/", PostViewSet.as_view({"get": "liked"}), name="liked-posts"),
     path("", include(router.urls)),
-    path("", include(posts_router.urls)),
+    path("", include(posts_with_comments)),
 ]

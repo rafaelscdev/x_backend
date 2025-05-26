@@ -1,3 +1,1 @@
-from .viewsets import RegisterViewSet, UserViewSet
-
-__all__ = ["UserViewSet", "RegisterViewSet"]
+from .users_viewset import UsersViewSet

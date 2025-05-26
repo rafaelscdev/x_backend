@@ -1,3 +1,1 @@
-from .models import User
-
-__all__ = ["User"]
+from .users import Users
