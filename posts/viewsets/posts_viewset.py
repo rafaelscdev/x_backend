@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination  # <-- Importação adicionada
 from rest_framework.response import Response
 
 from follows.models import Follows
@@ -8,10 +9,16 @@ from posts.models import Comment, Post
 from posts.serializers import CommentSerializer, PostSerializer
 
 
+# Classe de paginação personalizada
+class PostPagination(PageNumberPagination):
+    page_size = 10  # Você pode ajustar esse valor conforme desejar
+
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by("-created_at")
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = PostPagination  # <-- Paginação ativada
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -24,6 +31,10 @@ class PostViewSet(viewsets.ModelViewSet):
             "following_id", flat=True
         )
         posts = Post.objects.filter(user_id__in=following_ids).order_by("-created_at")
+        page = self.paginate_queryset(posts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
 
