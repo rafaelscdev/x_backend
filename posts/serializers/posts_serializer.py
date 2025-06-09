@@ -69,10 +69,17 @@ class PostSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     username = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ["id", "content", "user", "created_at", "username"]
+        fields = ["id", "content", "user", "created_at", "username", "profile_image"]
 
     def get_username(self, obj):
         return obj.user.username
+
+    def get_profile_image(self, obj):
+        request = self.context.get('request')
+        if obj.user.profile_image:
+            return request.build_absolute_uri(obj.user.profile_image.url) if request else obj.user.profile_image.url
+        return None
