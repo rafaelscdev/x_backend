@@ -12,7 +12,7 @@ class PostSerializer(serializers.ModelSerializer):
     comments_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
     follow_id = serializers.SerializerMethodField()
-    profile_image = serializers.SerializerMethodField()  # Adicionado
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -27,7 +27,7 @@ class PostSerializer(serializers.ModelSerializer):
             "comments_count",
             "is_following",
             "follow_id",
-            "profile_image",  # Adicionado
+            "profile_image",
         ]
 
     def get_likes_count(self, obj):
@@ -56,8 +56,13 @@ class PostSerializer(serializers.ModelSerializer):
         return None
 
     def get_profile_image(self, obj):
+        request = self.context.get("request")
         if obj.user.profile_image:
-            return obj.user.profile_image.url
+            return (
+                request.build_absolute_uri(obj.user.profile_image.url)
+                if request
+                else obj.user.profile_image.url
+            )
         return None
 
 
