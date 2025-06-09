@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "bio",
-            "profile_picture",
+            "profile_image",
             "created_at",
             "updated_at",
         )
@@ -43,7 +43,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "password2",
             "email",
             "bio",
-            "profile_picture",
+            "profile_image",
         )
 
     def validate(self, attrs):

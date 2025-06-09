@@ -12,6 +12,7 @@ class PostSerializer(serializers.ModelSerializer):
     comments_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
     follow_id = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()  # Adicionado
 
     class Meta:
         model = Post
@@ -26,6 +27,7 @@ class PostSerializer(serializers.ModelSerializer):
             "comments_count",
             "is_following",
             "follow_id",
+            "profile_image",  # Adicionado
         ]
 
     def get_likes_count(self, obj):
@@ -51,6 +53,11 @@ class PostSerializer(serializers.ModelSerializer):
         if user.is_authenticated:
             follow = Follows.objects.filter(follower=user, following=obj.user).first()
             return follow.id if follow else None
+        return None
+
+    def get_profile_image(self, obj):
+        if obj.user.profile_image:
+            return obj.user.profile_image.url
         return None
 
 
