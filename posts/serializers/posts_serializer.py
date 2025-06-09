@@ -50,10 +50,12 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_follow_id(self, obj):
         user = self.context["request"].user
-        if user.is_authenticated:
-            follow = Follows.objects.filter(follower=user, following=obj.user).first()
-            return follow.id if follow else None
-        return None
+        follow = (
+            Follows.objects.filter(follower=user, following=obj.user).first()
+            if user.is_authenticated
+            else None
+        )
+        return follow.id if follow else None
 
     def get_profile_image(self, obj):
         request = self.context.get("request")
@@ -79,7 +81,9 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.user.username
 
     def get_profile_image(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if obj.user.profile_image:
-            return request.build_absolute_uri(obj.user.profile_image.url) if request else obj.user.profile_image.url
+            if request:
+                return request.build_absolute_uri(obj.user.profile_image.url)
+            return obj.user.profile_image.url
         return None
